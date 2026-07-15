@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="coupang_red">#E4002B</color>
+    <color name="coupang_red_dark">#B0001F</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="bg">#FFF6F7F9</color>
+    <color name="card">#FFFFFFFF</color>
+    <color name="text_primary">#FF1A1A1A</color>
+    <color name="text_secondary">#FF6B7280</color>
+</resources>
