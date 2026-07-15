@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                     totalAmount += o.optLong("amount")
                     container.addView(card(o))
                 }
-                container.addView(hint("계정을 누르면 쿠팡 윙 · 길게 누르면 삭제").apply {
+                container.addView(hint("계정을 누르면 쿠팡 윙 · 길게 누르면 로그인정보·삭제").apply {
                     textSize = 12f
                 })
             }
@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(14), dp(16), dp(14))
             isClickable = true
             setOnClickListener { openWing(id) }
-            setOnLongClickListener { confirmDelete(id, label); true }
+            setOnLongClickListener { cardMenu(id, label); true }
         }
 
         val top = LinearLayout(this).apply {
@@ -186,6 +186,62 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, WingActivity::class.java).putExtra("accountId", id))
     }
 
+    private fun cardMenu(id: Int, label: String) {
+        val hasCreds = Creds.has(this, id)
+        val loginItem = if (hasCreds) "윙 로그인 정보 수정" else "윙 로그인 정보 입력 (자동 로그인)"
+        val items = arrayOf(loginItem, "계정 삭제")
+        AlertDialog.Builder(this)
+            .setTitle(label)
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> credsDialog(id, label)
+                    1 -> confirmDelete(id, label)
+                }
+            }
+            .show()
+    }
+
+    private fun credsDialog(id: Int, label: String) {
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), 0)
+        }
+        val info = TextView(this).apply {
+            text = "이 폰에만 저장되고 서버로 전송되지 않아요.\n윙을 열 때 자동으로 로그인합니다."
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_secondary))
+            setPadding(0, 0, 0, dp(8))
+        }
+        val etId = field("쿠팡 윙 아이디").apply { setText(Creds.id(this@MainActivity, id)) }
+        val etPw = EditText(this).apply {
+            hint = "쿠팡 윙 비밀번호"
+            setSingleLine()
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setText(Creds.pw(this@MainActivity, id))
+        }
+        box.addView(info); box.addView(etId); box.addView(etPw)
+
+        AlertDialog.Builder(this)
+            .setTitle("$label · 윙 로그인 정보")
+            .setView(box)
+            .setPositiveButton("저장") { _, _ ->
+                val uid = etId.text.toString().trim()
+                val upw = etPw.text.toString()
+                if (uid.isBlank() || upw.isBlank()) {
+                    Toast.makeText(this, "아이디와 비밀번호를 모두 입력하세요.", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                Creds.set(this, id, uid, upw)
+                Toast.makeText(this, "저장했어요. 이제 자동 로그인됩니다.", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("저장 삭제") { _, _ ->
+                Creds.clear(this, id)
+                Toast.makeText(this, "로그인 정보를 지웠어요.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
     private fun confirmDelete(id: Int, label: String) {
         AlertDialog.Builder(this)
             .setTitle("계정 삭제")
@@ -195,6 +251,7 @@ class MainActivity : AppCompatActivity() {
                 thread {
                     val (ok, msg) = Api.deleteAccount(applicationContext, id)
                     runOnUiThread {
+                        if (ok) Creds.clear(this, id)
                         Toast.makeText(this, msg, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
                         if (ok) fetchStatus(false)
                     }

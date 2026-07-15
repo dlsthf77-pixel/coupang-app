@@ -89,4 +89,9 @@ object Prefs {
     fun cookies(ctx: Context, id: Int): String = sp(ctx).getString("cookie_$id", "") ?: ""
     fun setCookies(ctx: Context, id: Int, blob: String) =
         sp(ctx).edit().putString("cookie_$id", blob).apply()
+
+    /** 현재 WebView 쿠키 저장소가 담고 있는 계정 id (같은 계정이면 쿠키를 안 지우고 유지). */
+    fun currentWing(ctx: Context): Int = sp(ctx).getInt("currentWing", 0)
+    fun setCurrentWing(ctx: Context, id: Int) =
+        sp(ctx).edit().putInt("currentWing", id).apply()
 }
