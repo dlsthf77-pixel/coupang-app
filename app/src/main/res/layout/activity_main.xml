@@ -9,101 +9,79 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvStatus"
+        <!-- 상단 요약 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
+            android:orientation="vertical"
             android:background="@color/card"
-            android:text="⚪ 알림 꺼짐" />
+            android:padding="16dp">
 
-        <Button
-            android:id="@+id/btnToggle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:text="알림 받기 시작" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-        <!-- 계정 -->
-        <TextView
-            style="@style/SectionLabel"
-            android:text="내 계정  (탭하면 쿠팡 윙 접속)" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="오늘의 매출"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@color/coupang_red" />
 
+                <Button
+                    android:id="@+id/btnSettings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:text="⚙ 설정" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTotal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:text="0건 · ₩0" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:text="" />
+        </LinearLayout>
+
+        <!-- 계정 카드들 -->
         <LinearLayout
             android:id="@+id/accountsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
+            android:paddingBottom="4dp" />
 
         <Button
             android:id="@+id/btnAddAccount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:text="＋ 계정 추가" />
 
-        <!-- 알림 소리 -->
-        <TextView
-            style="@style/SectionLabel"
-            android:text="알림 소리  (종류별로 다르게)" />
-
         <Button
-            android:id="@+id/btnSoundOrder"
+            android:id="@+id/btnRefresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginBottom="16dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="🛒 주문 소리 고르기" />
-
-        <Button
-            android:id="@+id/btnSoundInquiry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginTop="6dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="💬 문의 소리 고르기" />
-
-        <Button
-            android:id="@+id/btnSoundReturn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="8dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="↩️ 반품/취소 소리 고르기" />
-
-        <!-- 서버 토픽 (고급) -->
-        <TextView
-            style="@style/SectionLabel"
-            android:text="서버 알림 주소 (토픽)" />
-
-        <EditText
-            android:id="@+id/etTopic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:hint="예: coupang-alim-xxxxxxxx"
-            android:inputType="text" />
-
-        <Button
-            android:id="@+id/btnSaveTopic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="토픽 저장" />
+            android:text="새로고침" />
 
     </LinearLayout>
 </ScrollView>

@@ -119,9 +119,7 @@ class StreamService : Service() {
     private fun matchAccount(title: String): Int {
         val label = title.substringBefore(" · ").trim()
         if (label.isBlank()) return 0
-        val map = Prefs.labels(applicationContext)
-        for ((id, l) in map) if (l == label) return id
-        return 0
+        return Prefs.idForLabel(applicationContext, label)
     }
 
     override fun onDestroy() {

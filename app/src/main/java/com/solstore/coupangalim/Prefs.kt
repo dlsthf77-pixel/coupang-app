@@ -1,19 +1,18 @@
 package com.solstore.coupangalim
 
 import android.content.Context
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * 앱 설정 저장:
- *  - ntfy 서버/토픽 (서버 알림 수신용)
+ *  - 서버 주소 + 보안 키 (대시보드/계정등록 API)
+ *  - ntfy 서버/토픽 (실시간 알림)
  *  - 종류별 소리 + 채널 버전
- *  - 계정 목록(1~10, 이름) — 윙 바로가기용
- *  - 계정별 로그인 쿠키(세션 유지)
+ *  - 대시보드 최신 상태 캐시 (계정 이름/숫자)
+ *  - 계정별 로그인 쿠키 (윙 세션 유지)
  */
 object Prefs {
     private const val P = "coupang_app_prefs"
-    const val MAX_ACCOUNTS = 10
 
     const val TYPE_ORDER = "order"
     const val TYPE_INQUIRY = "inquiry"
@@ -21,17 +20,24 @@ object Prefs {
 
     private fun sp(ctx: Context) = ctx.getSharedPreferences(P, Context.MODE_PRIVATE)
 
+    // ---- 서버 API ----
+    fun serverUrl(ctx: Context): String =
+        (sp(ctx).getString("serverUrl", "") ?: "").trimEnd('/')
+    fun setServerUrl(ctx: Context, v: String) =
+        sp(ctx).edit().putString("serverUrl", v.trim().trimEnd('/')).apply()
+
+    fun apiSecret(ctx: Context): String = sp(ctx).getString("apiSecret", "") ?: ""
+    fun setApiSecret(ctx: Context, v: String) =
+        sp(ctx).edit().putString("apiSecret", v.trim()).apply()
+
     // ---- ntfy ----
     fun ntfyServer(ctx: Context): String =
-        sp(ctx).getString("server", "https://ntfy.sh") ?: "https://ntfy.sh"
-
+        sp(ctx).getString("ntfyServer", "https://ntfy.sh") ?: "https://ntfy.sh"
     fun topic(ctx: Context): String = sp(ctx).getString("topic", "") ?: ""
-    fun setTopic(ctx: Context, topic: String) =
-        sp(ctx).edit().putString("topic", topic.trim()).apply()
+    fun setTopic(ctx: Context, t: String) = sp(ctx).edit().putString("topic", t.trim()).apply()
 
     fun isEnabled(ctx: Context): Boolean = sp(ctx).getBoolean("enabled", false)
-    fun setEnabled(ctx: Context, on: Boolean) =
-        sp(ctx).edit().putBoolean("enabled", on).apply()
+    fun setEnabled(ctx: Context, on: Boolean) = sp(ctx).edit().putBoolean("enabled", on).apply()
 
     // ---- 소리 ----
     fun soundUri(ctx: Context, type: String): String? = sp(ctx).getString("sound_$type", null)
@@ -45,37 +51,42 @@ object Prefs {
         return v
     }
 
-    // ---- 계정 목록 (이름만; 윙 바로가기용) ----
-    fun labels(ctx: Context): MutableMap<Int, String> {
-        val raw = sp(ctx).getString("labels", null)
-        val map = linkedMapOf<Int, String>()
-        if (!raw.isNullOrBlank()) {
-            try {
-                val arr = JSONArray(raw)
-                for (i in 0 until arr.length()) {
-                    val o = arr.getJSONObject(i)
-                    map[o.optInt("id")] = o.optString("label")
-                }
-            } catch (_: Exception) {
+    // ---- 대시보드 상태 캐시 ----
+    fun cachedStatus(ctx: Context): String? = sp(ctx).getString("status", null)
+    fun setCachedStatus(ctx: Context, json: String) =
+        sp(ctx).edit().putString("status", json).apply()
+
+    /** 캐시된 상태에서 계정 이름 -> id 매칭 (알림 매칭용). */
+    fun idForLabel(ctx: Context, label: String): Int {
+        val raw = cachedStatus(ctx) ?: return 0
+        return try {
+            val arr = JSONObject(raw).optJSONArray("accounts") ?: return 0
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                if (o.optString("label") == label) return o.optInt("id")
             }
+            0
+        } catch (_: Exception) {
+            0
         }
-        return map
     }
 
-    fun label(ctx: Context, id: Int): String = labels(ctx)[id] ?: ""
-
-    fun setLabel(ctx: Context, id: Int, label: String) {
-        val map = labels(ctx)
-        if (label.isBlank()) map.remove(id) else map[id] = label.trim()
-        val arr = JSONArray()
-        map.toSortedMap().forEach { (k, v) ->
-            arr.put(JSONObject().put("id", k).put("label", v))
+    fun labelForId(ctx: Context, id: Int): String {
+        val raw = cachedStatus(ctx) ?: return ""
+        return try {
+            val arr = JSONObject(raw).optJSONArray("accounts") ?: return ""
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                if (o.optInt("id") == id) return o.optString("label")
+            }
+            ""
+        } catch (_: Exception) {
+            ""
         }
-        sp(ctx).edit().putString("labels", arr.toString()).apply()
     }
 
-    // ---- 계정별 로그인 쿠키(세션 유지) ----
+    // ---- 계정별 로그인 쿠키 (윙 세션 유지) ----
     fun cookies(ctx: Context, id: Int): String = sp(ctx).getString("cookie_$id", "") ?: ""
-    fun setCookies(ctx: Context, id: Int, cookieBlob: String) =
-        sp(ctx).edit().putString("cookie_$id", cookieBlob).apply()
+    fun setCookies(ctx: Context, id: Int, blob: String) =
+        sp(ctx).edit().putString("cookie_$id", blob).apply()
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView style="@style/FieldLabel" android:text="서버 주소 (예: http://49.247.138.236:8787)" />
+        <EditText android:id="@+id/etServer" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="http://서버IP:8787"
+            android:inputType="textUri" />
+
+        <TextView style="@style/FieldLabel" android:text="보안 키 (서버 설치 때 나온 값)" />
+        <EditText android:id="@+id/etSecret" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="apiSecret"
+            android:inputType="textVisiblePassword" />
+
+        <TextView style="@style/FieldLabel" android:text="서버 알림 주소 (ntfy 토픽)" />
+        <EditText android:id="@+id/etTopic" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="coupang-alim-xxxxxxxx"
+            android:inputType="text" />
+
+        <Button android:id="@+id/btnSave" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="저장" />
+
+        <Button android:id="@+id/btnPing" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="서버 연결 테스트" />
+
+        <TextView style="@style/SectionLabel" android:text="알림 소리 (종류별로 다르게)" />
+        <Button android:id="@+id/btnSoundOrder" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="🛒 주문 소리 고르기" />
+        <Button android:id="@+id/btnSoundInquiry" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="💬 문의 소리 고르기" />
+        <Button android:id="@+id/btnSoundReturn" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="↩️ 반품/취소 소리 고르기" />
+
+        <TextView style="@style/SectionLabel" android:text="알림 받기" />
+        <Button android:id="@+id/btnToggle" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            android:text="알림 받기 시작" />
+
+    </LinearLayout>
+</ScrollView>

@@ -33,7 +33,7 @@ class WingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_wing)
 
         accountId = intent.getIntExtra("accountId", 0)
-        val label = if (accountId > 0) Prefs.label(this, accountId) else ""
+        val label = if (accountId > 0) Prefs.labelForId(this, accountId) else ""
         supportActionBar?.title = if (label.isNotBlank()) "$label · 쿠팡 윙" else "쿠팡 윙"
 
         web = findViewById(R.id.webview)
