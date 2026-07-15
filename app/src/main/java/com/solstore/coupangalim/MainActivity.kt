@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
     private fun card(o: JSONObject): View {
         val id = o.optInt("id")
         val label = o.optString("label")
-        val err = o.optString("error").ifBlank { null }
+        val err = if (o.isNull("error")) null else o.optString("error").ifBlank { null }
 
         val cardView = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
