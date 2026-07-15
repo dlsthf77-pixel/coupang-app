@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, dp(10), 0, 0)
             }
-            stats.addView(statCol("주문", o.optInt("orders")))
+            stats.addView(statCol("신규주문", o.optInt("newOrders")))
             stats.addView(statCol("배송전", o.optInt("toShip")))
             stats.addView(statCol("문의", o.optInt("inquiries")))
             stats.addView(statCol("취소", o.optInt("cancels")))
