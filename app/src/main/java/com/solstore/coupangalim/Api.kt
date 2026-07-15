@@ -67,4 +67,25 @@ object Api {
             false to "연결 실패: ${e.message}"
         }
     }
+
+    /** 계정 삭제 (암호화 전송). 성공 여부 + 메시지. */
+    fun deleteAccount(ctx: Context, id: Int): Pair<Boolean, String> {
+        if (Prefs.serverUrl(ctx).isBlank() || Prefs.apiSecret(ctx).isBlank())
+            return false to "서버 주소/보안 키를 먼저 설정하세요 (⚙)"
+        return try {
+            val payload = JSONObject().put("id", id).toString()
+            val blob = Crypto.encrypt(Prefs.apiSecret(ctx), payload)
+            val c = conn(ctx, "/account/delete", "POST")
+            c.doOutput = true
+            c.setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+            c.outputStream.use { it.write(blob.toByteArray(Charsets.UTF_8)) }
+            val body = readBody(c)
+            val code = c.responseCode
+            c.disconnect()
+            if (code in 200..299) true to "삭제 완료"
+            else false to (try { JSONObject(body).optString("error") } catch (_: Exception) { "서버 오류 $code" })
+        } catch (e: Exception) {
+            false to "연결 실패: ${e.message}"
+        }
+    }
 }

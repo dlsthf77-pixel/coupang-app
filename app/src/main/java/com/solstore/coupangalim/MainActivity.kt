@@ -83,6 +83,9 @@ class MainActivity : AppCompatActivity() {
                     totalAmount += o.optLong("amount")
                     container.addView(card(o))
                 }
+                container.addView(hint("계정을 누르면 쿠팡 윙 · 길게 누르면 삭제").apply {
+                    textSize = 12f
+                })
             }
         } catch (_: Exception) {
             container.addView(hint("상태를 불러오지 못했어요."))
@@ -90,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         tvTotal.text = "${totalOrders}건 · ${won(totalAmount)}"
     }
 
-    private fun hint(text: String): View = TextView(this).apply {
+    private fun hint(text: String): TextView = TextView(this).apply {
         this.text = text
         setPadding(dp(16), dp(16), dp(16), dp(16))
         setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_secondary))
@@ -113,6 +116,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(14), dp(16), dp(14))
             isClickable = true
             setOnClickListener { openWing(id) }
+            setOnLongClickListener { confirmDelete(id, label); true }
         }
 
         val top = LinearLayout(this).apply {
@@ -180,6 +184,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun openWing(id: Int) {
         startActivity(Intent(this, WingActivity::class.java).putExtra("accountId", id))
+    }
+
+    private fun confirmDelete(id: Int, label: String) {
+        AlertDialog.Builder(this)
+            .setTitle("계정 삭제")
+            .setMessage("'$label' 계정을 삭제할까요?\n(서버에서 등록 정보가 지워집니다.)")
+            .setPositiveButton("삭제") { _, _ ->
+                Toast.makeText(this, "삭제 중...", Toast.LENGTH_SHORT).show()
+                thread {
+                    val (ok, msg) = Api.deleteAccount(applicationContext, id)
+                    runOnUiThread {
+                        Toast.makeText(this, msg, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
+                        if (ok) fetchStatus(false)
+                    }
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 
     private fun addAccountDialog() {
