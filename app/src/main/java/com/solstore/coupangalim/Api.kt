@@ -44,6 +44,31 @@ object Api {
         }
     }
 
+    /** 서버가 쿠팡을 지금 즉시 조회하게 하고(완료까지 대기) 최신 상태를 받는다.
+     *  구버전 서버(엔드포인트 없음)면 일반 상태 조회로 폴백. */
+    fun pollNow(ctx: Context): String? {
+        if (Prefs.serverUrl(ctx).isBlank() || Prefs.apiSecret(ctx).isBlank()) return null
+        return try {
+            val c = conn(ctx, "/poll", "POST")
+            c.readTimeout = 120000  // 폴링은 오래 걸릴 수 있음
+            c.doOutput = true
+            c.setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+            c.outputStream.use { it.write(ByteArray(0)) }
+            val body = readBody(c)
+            val code = c.responseCode
+            c.disconnect()
+            when {
+                code in 200..299 -> {
+                    Prefs.setCachedStatus(ctx, body); body
+                }
+                code == 404 -> getStatus(ctx)  // 구버전 서버
+                else -> getStatus(ctx)
+            }
+        } catch (_: Exception) {
+            getStatus(ctx)
+        }
+    }
+
     /** 계정 등록 (암호화 전송). 성공 여부 + 메시지. */
     fun addAccount(ctx: Context, label: String, vendorId: String, accessKey: String, secretKey: String): Pair<Boolean, String> {
         if (Prefs.serverUrl(ctx).isBlank() || Prefs.apiSecret(ctx).isBlank())

@@ -37,11 +37,15 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         findViewById<Button>(R.id.btnAddAccount).setOnClickListener { addAccountDialog() }
-        findViewById<Button>(R.id.btnRefresh).setOnClickListener { fetchStatus(true) }
+        findViewById<Button>(R.id.btnRefresh).setOnClickListener { refreshNow() }
     }
 
     override fun onResume() {
         super.onResume()
+        // 앱을 열 때, 알림이 켜져 있으면 실시간 수신 서비스가 살아있도록 보장
+        if (Prefs.isEnabled(this) && Prefs.topic(this).isNotBlank()) {
+            try { StreamService.start(this) } catch (_: Exception) {}
+        }
         Prefs.cachedStatus(this)?.let { render(it) }
         updateStatusLine()
         fetchStatus(false)
@@ -53,6 +57,22 @@ class MainActivity : AppCompatActivity() {
                 "⚠ ⚙설정에서 서버 주소·보안 키를 입력하세요"
             Prefs.isEnabled(this) -> "🟢 알림 받는 중"
             else -> "⚪ 알림 꺼짐 (⚙설정에서 시작)"
+        }
+    }
+
+    private fun refreshNow() {
+        if (Prefs.serverUrl(this).isBlank() || Prefs.apiSecret(this).isBlank()) {
+            Toast.makeText(this, "먼저 ⚙설정에서 서버 주소·보안 키를 입력하세요.", Toast.LENGTH_LONG).show()
+            return
+        }
+        tvStatus.text = "🔄 지금 조회 중... (최대 30초)"
+        thread {
+            val json = Api.pollNow(applicationContext)
+            runOnUiThread {
+                if (json != null) render(json)
+                else Toast.makeText(this, "조회 실패 (⚙설정 확인)", Toast.LENGTH_LONG).show()
+                updateStatusLine()
+            }
         }
     }
 
