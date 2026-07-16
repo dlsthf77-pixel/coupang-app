@@ -94,4 +94,9 @@ object Prefs {
     fun currentWing(ctx: Context): Int = sp(ctx).getInt("currentWing", 0)
     fun setCurrentWing(ctx: Context, id: Int) =
         sp(ctx).edit().putInt("currentWing", id).apply()
+
+    /** 예전 버전에서 꼬인 쿠키를 1회 초기화했는지 표시 (업그레이드 마이그레이션). */
+    fun cookieResetDone(ctx: Context): Boolean = sp(ctx).getBoolean("cookieResetV9", false)
+    fun setCookieResetDone(ctx: Context) =
+        sp(ctx).edit().putBoolean("cookieResetV9", true).apply()
 }

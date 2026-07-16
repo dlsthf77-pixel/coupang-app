@@ -209,16 +209,27 @@ class MainActivity : AppCompatActivity() {
     private fun cardMenu(id: Int, label: String) {
         val hasCreds = Creds.has(this, id)
         val loginItem = if (hasCreds) "윙 로그인 정보 수정" else "윙 로그인 정보 입력 (자동 로그인)"
-        val items = arrayOf(loginItem, "계정 삭제")
+        val items = arrayOf(loginItem, "윙 로그아웃 (쿠키 초기화)", "계정 삭제")
         AlertDialog.Builder(this)
             .setTitle(label)
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> credsDialog(id, label)
-                    1 -> confirmDelete(id, label)
+                    1 -> logoutWing()
+                    2 -> confirmDelete(id, label)
                 }
             }
             .show()
+    }
+
+    private fun logoutWing() {
+        try {
+            android.webkit.CookieManager.getInstance().removeAllCookies(null)
+            android.webkit.CookieManager.getInstance().flush()
+        } catch (_: Exception) {
+        }
+        Prefs.setCurrentWing(this, 0)
+        Toast.makeText(this, "윙 로그아웃 완료. 다음에 열면 새로 로그인해요.", Toast.LENGTH_SHORT).show()
     }
 
     private fun credsDialog(id: Int, label: String) {

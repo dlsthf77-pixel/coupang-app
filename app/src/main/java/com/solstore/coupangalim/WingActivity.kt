@@ -13,22 +13,16 @@ import org.json.JSONObject
 
 /**
  * 계정별 쿠팡 윙.
- *  - 같은 계정을 다시 열면 쿠키를 그대로 유지해 로그인 상태를 이어간다.
- *  - 다른 계정으로 바꿀 때만 저장/복원한다.
- *  - 저장된 아이디/비밀번호가 있으면 로그인 페이지에서 자동으로 채워 로그인한다.
+ *  - 같은 계정을 다시 열면 쿠키를 그대로 둬서 로그인 상태를 유지한다. (WebView 쿠키는 앱을 꺼도 유지)
+ *  - 다른 계정으로 바꿀 때는 쿠키를 깨끗이 비우고, 저장된 아이디/비번으로 자동 로그인한다.
+ *
+ * (예전의 계정별 쿠키 저장/복원 방식은 쿠키가 중복 누적돼 차단되는 문제가 있어 제거함)
  */
 class WingActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
     private var accountId: Int = 0
     private var autoLoginTried = false
-
-    private val hosts = listOf(
-        "https://wing.coupang.com",
-        "https://xauth.coupang.com",
-        "https://www.coupang.com",
-        "https://coupang.com"
-    )
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,9 +57,9 @@ class WingActivity : AppCompatActivity() {
 
         val prev = Prefs.currentWing(this)
         if (accountId > 0 && prev != accountId) {
-            if (prev > 0) saveCookiesFor(prev)
+            // 다른 계정으로 전환 → 쿠키 깨끗이 비우고 새로 로그인 (자동 로그인 정보 있으면 자동)
             cm.removeAllCookies {
-                restoreCookies()
+                cm.flush()
                 Prefs.setCurrentWing(this, accountId)
                 loadWing()
             }
@@ -127,51 +121,9 @@ class WingActivity : AppCompatActivity() {
         """.trimIndent()
         web.evaluateJavascript(js) { result ->
             val r = result ?: ""
-            // 로그인 폼을 실제로 채웠을 때만 '시도함'으로 표시 (일반 페이지면 다음에 다시 시도)
             if (r.contains("submit") || r.contains("filled")) {
                 autoLoginTried = true
             }
         }
-    }
-
-    private fun restoreCookies() {
-        if (accountId <= 0) return
-        val blob = Prefs.cookies(this, accountId)
-        if (blob.isBlank()) return
-        try {
-            val o = JSONObject(blob)
-            val cm = CookieManager.getInstance()
-            for (host in hosts) {
-                val cookieStr = o.optString(host, "")
-                if (cookieStr.isBlank()) continue
-                for (c in cookieStr.split("; ")) {
-                    if (c.isBlank()) continue
-                    cm.setCookie("$host/", "$c; Domain=.coupang.com; Path=/")
-                    cm.setCookie("$host/", c)
-                }
-            }
-            cm.flush()
-        } catch (_: Exception) {
-        }
-    }
-
-    private fun saveCookiesFor(id: Int) {
-        if (id <= 0) return
-        try {
-            val cm = CookieManager.getInstance()
-            cm.flush()
-            val o = JSONObject()
-            for (host in hosts) {
-                val c = cm.getCookie("$host/")
-                if (!c.isNullOrBlank()) o.put(host, c)
-            }
-            Prefs.setCookies(this, id, o.toString())
-        } catch (_: Exception) {
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (accountId > 0) saveCookiesFor(accountId)
     }
 }
